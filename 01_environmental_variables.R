@@ -54,7 +54,7 @@ myExpl_hist = myExpl
 
 ## Data from SoilGrids
 
-common_path<-setwd("C:/Users/USUARIO/Universidad de Córdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability/BD/WorldClim") 
+common_path<-setwd("C:/Users/USUARIO/Universidad de Córdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability/BD/SoilGrids") 
 files <- list.files(
   path <- common_path,
   pattern <- "\\.tif$",
