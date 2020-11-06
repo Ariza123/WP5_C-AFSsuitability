@@ -1,7 +1,3 @@
-#Data collection for distribution analysis 
-#Author: Maarten van Zonneveld
-#Affiliation: World Vegetable Center
-
 #PACKAGES####
 
 library(rgbif)
