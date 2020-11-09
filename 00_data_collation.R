@@ -10,11 +10,12 @@ library(rworldmap)
 library(ggplot2)
 library(rgdal)
 library(dplyr)
+library(car)
 
 
 ## Data from GBIF
 
-common_path<-setwd("C:/Users/USUARIO/Universidad de C?rdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability/BD/GBIF") 
+common_path<-setwd("C:/Users/USUARIO/Universidad de Córdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability/BD/GBIF") 
 files <- list.files(
   path <- common_path,
   pattern <- ".*(occurrence).*txt$",
@@ -41,7 +42,7 @@ BD<-unduplicated
 
 #Remove sea points and others
 
-setwd("C:/Users/USUARIO/Universidad de C?rdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability/BD/GIS/Others/Paises_Mundo")
+setwd("C:/Users/USUARIO/Universidad de Córdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability/BD/GIS/Others/Paises_Mundo")
 ctries <- readOGR("Paises_Mundo.shp")
 proj4string(ctries) <- "+proj=longlat +datum=WGS84"
 
@@ -65,7 +66,8 @@ A<-BD[which(BD$basisOfRecord=="HUMAN_OBSERVATION"),]
 B<-BD[which(BD$basisOfRecord=="LIVING_SPECIMEN"),]
 C<-BD[which(BD$basisOfRecord=="OBSERVATION"),]
 D<-BD[which(BD$basisOfRecord=="MATERIAL_SAMPLE"),]
-BD<-rbind(A,B,C,D)
+E<-BD[which(BD$basisOfRecord=="PRESERVED_SPECIMEN"),]
+BD<-rbind(A,B,C,D,E)
 
 ## Check decimal places https://stackoverflow.com/questions/5173692/how-to-return-number-of-decimal-places-in-r/5173906
 
@@ -96,17 +98,50 @@ BD <- BD[!is.na(BD$year),]
 
 BD<-BD[which(BD$year>1970),]
 
-# Reduce the possible effects of sampling bias and spatial autocorrelation
+# Reduce the possible effects of sampling bias and spatial autocorrelation (This step has been done externally with QGIS)
 
-BD<-BDdef
+# Introduce the results extracted from QGIS
+
+BD<-BD2
 BD<- BD %>% 
   group_by(species) %>%  
   distinct(id, .keep_all = TRUE)
+
+BD<-select(BD,gbifID,basisOfRecord,occurrenceStatus,year,month,day,decimalLatitude,decimalLongitude,scientificName,level0Name,species,locality,family)
+
+
+# Remove outliers by average temperature (WorldClim)
+
+ListTemperature<-list.files("C:/Users/USUARIO/Desktop/WorldClim/wc2.1_2.5m_tavg","\\.tif$",
+                     all.files = T, recursive = T,full.names = T)
+
+StackTemperature<-stack(ListTemperature)
+
+Temp_values <- extract(StackTemperature,coord)
+
+Avg_temperature<-rowMeans(Temp_values)
+
+BD$Temperature<-Avg_temperature
+
+ggplot(BD,x=1) + geom_boxplot(aes(y=Temperature))
+
+OutVals = boxplot(BD$Temperature)$out
+Out_values<-which(BD$Temperature %in% OutVals)
+
+BD<-BD[-c(Out_values),]
+
+ggplot(BD,x=1) + geom_boxplot(aes(y=Temperature))
+
+# Remove by number of observations
 
 sp <- BD %>% 
   group_by(species) %>%  
   count(species) %>%
   filter(n > 60)
+spp<-as.list(sp$species)
 
-BD<-select(BD,gbifID,basisOfRecord,occurrenceStatus,year,month,day,decimalLatitude,decimalLongitude,scientificName,level0Name,species,locality,family)
+sp <- BD %>% 
+  one_of(spp)
+
+write.csv(BD, "C:/Borrar/BDdef.csv")
 
