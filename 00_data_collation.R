@@ -102,7 +102,7 @@ BD<-BD[which(BD$year>1970),]
 
 # Introduce the results extracted from QGIS
 
-BD<-BD2
+
 BD<- BD %>% 
   group_by(species) %>%  
   distinct(id, .keep_all = TRUE)
@@ -116,6 +116,9 @@ ListTemperature<-list.files("C:/Users/USUARIO/Desktop/WorldClim/wc2.1_2.5m_tavg"
                      all.files = T, recursive = T,full.names = T)
 
 StackTemperature<-stack(ListTemperature)
+
+coord <- SpatialPoints(BD[,c("decimalLongitude","decimalLatitude")])
+proj4string(coord) <- "+proj=longlat +datum=WGS84"
 
 Temp_values <- extract(StackTemperature,coord)
 
@@ -138,10 +141,11 @@ sp <- BD %>%
   group_by(species) %>%  
   count(species) %>%
   filter(n > 60)
-spp<-as.list(sp$species)
 
-sp <- BD %>% 
-  one_of(spp)
+listsp<-as.list(sp$species)
 
-write.csv(BD, "C:/Borrar/BDdef.csv")
+selected<-which(BD$species %in% listsp)
+
+BD<-BD[c(selected),]
+
 
