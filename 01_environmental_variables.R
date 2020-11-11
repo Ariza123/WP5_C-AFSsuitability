@@ -11,6 +11,7 @@ library(ggplot2)
 library(rgdal)
 library(dplyr)
 library(usdm)
+library(gdalUtils)
 
 ## Data from WorldClim
 
@@ -53,6 +54,88 @@ myExpl_hist = myExpl
 
 
 ## Data from SoilGrids
+
+#Bulk density
+
+gdalwarp(t_srs="EPSG:4326", multi=TRUE, wm=200, 
+         co=c("BIGTIFF=YES", "COMPRESS=DEFLATE", "TILED=TRUE"),
+         tr=c(0.25,0.25), # Desired output resolution
+         verbose=T,
+         "/vsicurl?max_retry=3&retry_delay=1&list_dir=no&url=https://files.isric.org/soilgrids/latest/data/bdod/bdod_0-5cm_mean.vrt", # Input VRT
+         "C:/Users/USUARIO/Universidad de Córdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability/BD/SoilGrids/bdod_0-5cm_SoilGrids2.tif")
+
+gdalwarp(t_srs="EPSG:4326", multi=TRUE, wm=200, 
+         co=c("BIGTIFF=YES", "COMPRESS=DEFLATE", "TILED=TRUE"),
+         tr=c(0.25,0.25), # Desired output resolution
+         verbose=T,
+         "/vsicurl?max_retry=3&retry_delay=1&list_dir=no&url=https://files.isric.org/soilgrids/latest/data/bdod/bdod_5-15cm_mean.vrt", # Input VRT
+         "C:/Users/USUARIO/Universidad de Córdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability/BD/SoilGrids/bdod_5-15cm_SoilGrids2.tif")
+
+
+
+gdalwarp(t_srs="EPSG:4326", multi=TRUE, wm=200, 
+         co=c("BIGTIFF=YES", "COMPRESS=DEFLATE", "TILED=TRUE"),
+         tr=c(0.25,0.25), # Desired output resolution
+         verbose=T,
+         "/vsicurl?max_retry=3&retry_delay=1&list_dir=no&url=https://files.isric.org/soilgrids/latest/data/bdod/bdod_15-30cm_mean.vrt", # Input VRT
+         "C:/Users/USUARIO/Universidad de Córdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability/BD/SoilGrids/bdod_15-30cm_SoilGrids2.tif")
+
+gdalwarp(t_srs="EPSG:4326", multi=TRUE, wm=200, 
+         co=c("BIGTIFF=YES", "COMPRESS=DEFLATE", "TILED=TRUE"),
+         tr=c(0.25,0.25), # Desired output resolution
+         verbose=T,
+         "/vsicurl?max_retry=3&retry_delay=1&list_dir=no&url=https://files.isric.org/soilgrids/latest/data/bdod/bdod_30-60cm_mean.vrt", # Input VRT
+         "C:/Users/USUARIO/Universidad de Córdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability/BD/SoilGrids/bdod_30-60cm_SoilGrids2.tif")
+
+
+gdalwarp(t_srs="EPSG:4326", multi=TRUE, wm=200, 
+         co=c("BIGTIFF=YES", "COMPRESS=DEFLATE", "TILED=TRUE"),
+         tr=c(0.25,0.25), # Desired output resolution
+         verbose=T,
+         "/vsicurl?max_retry=3&retry_delay=1&list_dir=no&url=https://files.isric.org/soilgrids/latest/data/bdod/bdod_60-100cm_mean.vrt", # Input VRT
+         "C:/Users/USUARIO/Universidad de Córdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability/BD/SoilGrids/bdod_60-100cm_SoilGrids2.tif")
+
+
+#CEC
+
+gdalwarp(t_srs="EPSG:4326", multi=TRUE, wm=200, 
+         co=c("BIGTIFF=YES", "COMPRESS=DEFLATE", "TILED=TRUE"),
+         tr=c(0.25,0.25), # Desired output resolution
+         verbose=T,
+         "/vsicurl?max_retry=3&retry_delay=1&list_dir=no&url=https://files.isric.org/soilgrids/latest/data/cec/cec_0-5cm_mean.vrt", # Input VRT
+         "C:/Users/USUARIO/Universidad de Córdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability/BD/SoilGrids/cec_0-5cm_SoilGrids2.tif")
+
+gdalwarp(t_srs="EPSG:4326", multi=TRUE, wm=200, 
+         co=c("BIGTIFF=YES", "COMPRESS=DEFLATE", "TILED=TRUE"),
+         tr=c(0.25,0.25), # Desired output resolution
+         verbose=T,
+         "/vsicurl?max_retry=3&retry_delay=1&list_dir=no&url=https://files.isric.org/soilgrids/latest/data/cec/cec_5-15cm_mean.vrt", # Input VRT
+         "C:/Users/USUARIO/Universidad de Córdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability/BD/SoilGrids/cec_5-15cm_SoilGrids2.tif")
+
+
+
+gdalwarp(t_srs="EPSG:4326", multi=TRUE, wm=200, 
+         co=c("BIGTIFF=YES", "COMPRESS=DEFLATE", "TILED=TRUE"),
+         tr=c(0.25,0.25), # Desired output resolution
+         verbose=T,
+         "/vsicurl?max_retry=3&retry_delay=1&list_dir=no&url=https://files.isric.org/soilgrids/latest/data/cec/cec_15-30cm_mean.vrt", # Input VRT
+         "C:/Users/USUARIO/Universidad de Córdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability/BD/SoilGrids/cec_15-30cm_SoilGrids2.tif")
+
+gdalwarp(t_srs="EPSG:4326", multi=TRUE, wm=200, 
+         co=c("BIGTIFF=YES", "COMPRESS=DEFLATE", "TILED=TRUE"),
+         tr=c(0.25,0.25), # Desired output resolution
+         verbose=T,
+         "/vsicurl?max_retry=3&retry_delay=1&list_dir=no&url=https://files.isric.org/soilgrids/latest/data/cec/cec_30-60cm_mean.vrt", # Input VRT
+         "C:/Users/USUARIO/Universidad de Córdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability/BD/SoilGrids/cec_30-60cm_SoilGrids2.tif")
+
+
+gdalwarp(t_srs="EPSG:4326", multi=TRUE, wm=200, 
+         co=c("BIGTIFF=YES", "COMPRESS=DEFLATE", "TILED=TRUE"),
+         tr=c(0.25,0.25), # Desired output resolution
+         verbose=T,
+         "/vsicurl?max_retry=3&retry_delay=1&list_dir=no&url=https://files.isric.org/soilgrids/latest/data/cec/cec_60-100cm_mean.vrt", # Input VRT
+         "C:/Users/USUARIO/Universidad de Córdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability/BD/SoilGrids/cec_60-100cm_SoilGrids2.tif")
+
 
 common_path<-setwd("C:/Users/USUARIO/Universidad de Córdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability/BD/SoilGrids") 
 files <- list.files(
