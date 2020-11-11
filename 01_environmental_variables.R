@@ -10,7 +10,7 @@ library(rworldmap)
 library(ggplot2)
 library(rgdal)
 library(dplyr)
-
+library(usdm)
 
 ## Data from WorldClim
 
@@ -26,7 +26,7 @@ StackWC<-stack(files)
 
 ## Introduce BD with coordinates
 
-BD<-read.csv("C:/Users/USUARIO/Universidad de Córdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability/BD/BD.csv")
+BD<-read.csv("C:/Users/USUARIO/Universidad de Córdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability/BD/BD_ocurrence.csv")
 
 ## Extract climate data
 
@@ -34,12 +34,12 @@ extracted<-extract(StackWC,BD[,c("decimalLongitude","decimalLatitude")])
 
 extracted<-as.data.frame(extracted)
 
+write.csv(extracted, "C:/Users/USUARIO/Universidad de Córdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability/BD/WorldClim/extracted.csv")
+
 ## Calibration subset
 
 Historical <- extracted %>%
-  select(contains("BCC.CSM2.MR"))%>%
-  select(contains("ssp126"))%>%
-  select(ends_with(".1"))
+  select(contains("bio_"))
 
 ## VIF
 
