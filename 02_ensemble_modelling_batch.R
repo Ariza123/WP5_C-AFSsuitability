@@ -75,9 +75,6 @@ df <- BD_calib_clean[,2:4]
 species_all <- sort(unique(df$species))
 
 ## Send scripts
-ini <- 3;fin<-4
-jobRunScript(path = "C:/Users/Pablo/Documents/R_projects/WP5_C-AFSsuitability/02_ensemble_modelling.R",importEnv = T,name =paste("species",ini,"-",fin)) 
-
 
 library(rstudioapi)
   ini <- 1;fin<-1
@@ -85,6 +82,6 @@ while(fin<length(species_all)){
   fin<- ini+5
   if(fin>=length(species_all)){fin = length(species_all)}
   print(paste("Mandados: especie ",ini, " - ",fin))
-  jobRunScript(path = "/WP5_C-AFSsuitability/02_ensemble_modelling.R",importEnv = TRUE,name =paste("species",ini,"-",fin)) 
+  jobRunScript(path = "/WP5_C-AFSsuitability/02_ensemble_modelling.R",workingDir = parentwd,importEnv = TRUE,name =paste("species",ini,"-",fin)) 
   ini <- fin+1
 }
