@@ -22,7 +22,7 @@ if(!require(geosphere)) install.packages("geosphere") else library(geosphere)
 if(!require(maps)) install.packages("maps") else  library(maps)
 if(!require(alphahull)) install.packages("alphahull") else library(alphahull)
 if(!require(tm)) install.packages("tm") else  library(tm)
-if(!require(maxent)) install.packages("maxent") else library(maxent)
+# if(!require(maxent)) install.packages("maxent") else library(maxent)
 if(!require(gbm)) install.packages("gbm") else library(gbm)
 if(!require(gam)) install.packages("gam") else library(gam)
 if(!require(earth)) install.packages("earth") else library(earth)
@@ -51,78 +51,15 @@ if(!require(PresenceAbsence)) install.packages("PresenceAbsence") else library(P
 if(!require(tcltk2)) install.packages("tcltk2") else library(tcltk2)
 if(!require(BiodiversityR)) install.packages("BiodiversityR") else  library(BiodiversityR)
 
-setwd("C:/Users/Pablo/OneDrive - Universidad de Córdoba/1_proyectos/2019_CocoAgroForecast/WP5 - suitability/")
-parentwd <- getwd()
-# Final seletion of variables for modelling
 
-###########################3
-# Occurrence data filtered
-BD_calib <- read.csv("./BD/BD_calibrate.csv")
-# BD_fut <- read.csv("./BD/BD_fut.csv")
-
-
-### COMENTARIOS:
-# - Al extraer las variables de la BD calib hay puntos que se quedan sin datos (40 de suelo y 1 de clima)
-# esto habría que considerarlo para el número de puntos por especie para mostar el final de datos que partimos
-# Del análisis de correlación para suelo nos quedamos con sand,ph,cec y nitrogen. bulk density tiene mas NA
-# sand es un buen predictor de silt y clay así que simplificamos
-# de clima bio3 y bio4 estan muy correlacionados así que nos quedamos con la bio4 que es más relevante
-# bio14 y bio15 también lo están así que nos quedamos con la 15 que es mas relevante.
-# seleccion final: sand,ph,cec y nitrogen, bio2, 4, 8, 9,13,15,18 y 19
-# Para esta primera versión probamos con 4 modelos principales (GLM,GBM,RF y GAM) haciendo pseudoausencias a 500km
-
-#### Load all data 
-common_path<-"./BD/Current/"
-files <- list.files(
-  path <- common_path,
-  pattern <- "\\.tif$",
-  recursive = F,          
-  full.names = TRUE          
-)
-bio_current <- stack(files[c(1:17)])
-# plot(bio_current)
-
-####################
-# Test collinearity
-BD_calib_variables <- extract(bio_current,BD_calib[,c("decimalLongitude","decimalLatitude")],df=T)
-summary(BD_calib_variables)
-
-library(corrplot)
-cor_mat <- cor(na.omit(BD_calib_variables))
-
-png(filename = "processing/figures/corrplot_all.png" , width=600,height = 600,pointsize = 9 )
-corrplot(cor_mat,method = "number",order="hclust",addrect = 4,is.corr = T, )
-dev.off()
-
-#####################
-# Prepare data
-
-# Occurrence
-BD_calib_clean <- BD_calib[!is.na(BD_calib_variables$cec_mean30100cm_SoilGrids2),]
-summary(BD_calib_clean)
-
-# Predictors
-bio_current <- stack(files[c(2,4,5,6,13,15,16,17,8,10,11,12)])
-# plot(bio_current)
-bio_current_pred <- stack(raster::crop(bio_current,extent(-9,1,4,12),))
-# plot(bio_current_pred)
-
-# Model parameters
-# see Liu et al (2013) doi:10.1111/jbi.12058
-thres <- "MaxSens+Spec"
-ncross <-2 # number of groups for cross validation
-npseudo <- 100 ## number of pseudobscences per species
-distpseud <- 500000 # metres
 
 #...................................................
 #...................................................
 # Run ensemble modelling ####
 
-# Muestra para calibrar
-df <- subset(BD_calib_clean[,2:4],species=="Acacia mangium" | species=="Cola acuminata")
 
 
-species <- sort(unique(df$species))
+species <- species_all[ini:fin]
 
 for (i in seq_along(species) ) {
   
