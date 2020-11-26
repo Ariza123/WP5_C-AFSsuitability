@@ -3,8 +3,8 @@
 
 if(!require(raster)) install.packages("raster") else library(raster)
 
-setwd("C:/Users/Pablo/OneDrive - Universidad de Córdoba/1_proyectos/2019_CocoAgroForecast/WP5 - suitability/")
-parentwd <- getwd()
+setwd("C:/Users/USUARIO/Universidad de Córdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability")
+
 
 # Final seletion of variables for modelling
 
@@ -37,7 +37,7 @@ bio_current <- raster::stack(files[c(1:17)])
 
 ####################
 # Test collinearity
-BD_calib_variables <- extract(bio_current,BD_calib[,c("decimalLongitude","decimalLatitude")],df=T)
+BD_calib_variables <- raster::extract(bio_current,BD_calib[,c("decimalLongitude","decimalLatitude")],df=T)
 # summary(BD_calib_variables)
 # 
 # library(corrplot)
@@ -68,20 +68,35 @@ npseudo <- 1000 ## number of pseudobscences per species
 distpseud <- 500000 # metres
 
 
-# df <- subset(BD_calib_clean[,2:4],species=="Acacia mangium" | species=="Cola acuminata")
-
 # Species
 df <- BD_calib_clean[,2:4]
 species_all <- sort(unique(df$species))
 
-## Send scripts
 
+
+## Send CURRENT scripts
 library(rstudioapi)
-  ini <- 1;fin<-1
+ini <- 1;fin<-1
+
 while(fin<length(species_all)){
   fin<- ini+5
   if(fin>=length(species_all)){fin = length(species_all)}
   print(paste("Mandados: especie ",ini, " - ",fin))
-  jobRunScript(path = "/WP5_C-AFSsuitability/02_ensemble_modelling.R",workingDir = parentwd,importEnv = TRUE,name =paste("species",ini,"-",fin)) 
+  jobRunScript(path = "C:/Users/USUARIO/Documents/wp5/02_ensemble_modelling.R",importEnv = TRUE,name =paste("species",ini,"-",fin)) 
+  # this function has problems with the spanish accent in the path
   ini <- fin+1
 }
+
+## Send FUTURE scripts
+  
+  library(rstudioapi)
+  ini <- 1;fin<-1
+  
+  while(fin<length(species_all)){
+    fin<- ini+5
+    if(fin>=length(species_all)){fin = length(species_all)}
+    print(paste("Mandados: especie ",ini, " - ",fin))
+    jobRunScript(path = "C:/Users/USUARIO/Documents/wp5/02_2_ensemble_modelling_forecast.R",importEnv = TRUE,name =paste("species",ini,"-",fin)) 
+    # this function has problems with the spanish accent in the path
+    ini <- fin+1
+  }

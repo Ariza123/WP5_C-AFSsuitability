@@ -16,7 +16,7 @@ if(!require(dismo)) install.packages("dismo") else library(dismo)
 if(!require(raster)) install.packages("raster") else library(raster)
 if(!require(maptools)) install.packages("maptools") else library(maptools)
 if(!require(rgeos)) install.packages("rgeos") else library(rgeos)
-if(!require(rJava)) install.packages("rJava") else library(rJava)
+# if(!require(rJava)) install.packages("rJava") else library(rJava)
 if(!require(rgdal)) install.packages("rgdal") else library(rgdal)
 if(!require(geosphere)) install.packages("geosphere") else library(geosphere)
 if(!require(maps)) install.packages("maps") else  library(maps)
@@ -56,7 +56,7 @@ if(!require(BiodiversityR)) install.packages("BiodiversityR") else  library(Biod
 #...................................................
 #...................................................
 # Run ensemble modelling ####
-
+parentwd <- getwd()
 
 
 species <- species_all[ini:fin]

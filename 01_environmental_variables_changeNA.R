@@ -41,8 +41,8 @@ files <- list.files(
 )
 
 ####################################33
-
-common_path<-"./BD/Future//"
+library(raster)
+common_path<-"BD/Future/"
 files <- list.files(
   path <- common_path,
   pattern <- "\\.tif$",

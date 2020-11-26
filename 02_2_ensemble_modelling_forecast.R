@@ -57,9 +57,14 @@ if(!require(BiodiversityR)) install.packages("BiodiversityR") else  library(Biod
 #...................................................
 # Run ensemble modelling ####
 
-gcm <- c("BCC-CSM2-MR","CanESM5","CNRM-CM6","CNRM_ESM2","IPSL-CM6A","MIROC6","MIROC-ES2L")
-
+gcm <- c("BCC-CSM2-MR","CanESM5","CNRM-CM6-1","CNRM_ESM2-1","IPSL-CM6A-LR","MIROC6","MIROC-ES2L")
+scenario <- c("2021-2040","2041-2060")
+rcp <- c("ssp126","ssp585")
 species <- species_all[ini:fin]
+
+## Working directory
+parentwd <- getwd() # model outputs
+wcwd <- "C:/Users/USUARIO/Universidad de Córdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability" # raster
 
 for (i in seq_along(species) ) {
   
@@ -72,46 +77,55 @@ for (i in seq_along(species) ) {
   
   setwd(output)
   
-  load(enm_step1,file = paste0("./models/", species[i],"_enmstep1.RData") )
-  load(enm_step2,file = paste0("./models/", species[i],"_enmstep2.RData") )
+  load(file = paste0("./models/", species[i],"_enmstep1.RData") )
+  load(file = paste0("./models/", species[i],"_enmstep2.RData") )
 
+  output_weights <- enm_step1$output.weights
+  output_weights[output_weights < 0.05] <- 0
 
   ### write raster for each gcm model in RCP45 and RCP85 
   for (k in seq_along(gcm)){
-    cat("Step 3.2: Predict future distribution, GCM", toupper(gcm[k]), "\n")
-
-    #load GCM layers
-    gcmfiles <- paste0(parentwd, "/BD/Future/wc2.1_2.5m_bioc_", gcm[k], "_ssp126_2021-2040_corr.tif")
-
-    gcm_model <- raster::stack(gcmfiles)
-    gcm_model <- gcm_model[[c(2,4,8,9,13,15,18,19)]] # select our climate variables
     
-    bio_future <- bio_current_pred
-    bio_future[[5]] <- gcm_model[[1]] # overwrite climate projectios
-    bio_future[[6]] <- gcm_model[[2]] # overwrite climate projectios
-    bio_future[[7]] <- gcm_model[[3]] # overwrite climate projectios
-    bio_future[[8]] <- gcm_model[[4]] # overwrite climate projectios
-    bio_future[[9]] <- gcm_model[[5]] # overwrite climate projectios
-    bio_future[[10]] <- gcm_model[[6]] # overwrite climate projectios
-    bio_future[[11]] <- gcm_model[[7]] # overwrite climate projectios
-    bio_future[[12]] <- gcm_model[[8]] # overwrite climate projectios
-    names(bio_future) <- names(bio_current_pred)
+    for (s in seq_along(scenario)){
+      
+      for (r in seq_along(rcp)){
+        
+        cat("Step 3.2: Predict future distribution, GCM", toupper(gcm[k]),"_", rcp[r],"_",scenario[s], "\n")
     
-    ensemble_gcm_model <- ensemble.raster(xn = bio_future,
-                                          models.list = enm_step2$models,
-                                          input.weights = output_weights,
-                                          thresholds = enm_step2$models$thresholds,
-                                          SINK = TRUE,
-                                          RASTER.species.name = species[i],
-                                          RASTER.stack.name = gcm[k])
-
+        #load GCM layers
+        gcmfiles <- paste0(wcwd, "/BD/Future/wc2.1_2.5m_bioc_", gcm[k], "_", rcp[r],"_",scenario[s],"_corr.tif")
+    
+        gcm_model <- raster::stack(gcmfiles)
+        gcm_model <- gcm_model[[c(2,4,8,9,13,15,18,19)]] # select our climate variables
+        
+        bio_future <- bio_current_pred
+        bio_future[[5]] <- gcm_model[[1]] # overwrite climate projectios
+        bio_future[[6]] <- gcm_model[[2]] # overwrite climate projectios
+        bio_future[[7]] <- gcm_model[[3]] # overwrite climate projectios
+        bio_future[[8]] <- gcm_model[[4]] # overwrite climate projectios
+        bio_future[[9]] <- gcm_model[[5]] # overwrite climate projectios
+        bio_future[[10]] <- gcm_model[[6]] # overwrite climate projectios
+        bio_future[[11]] <- gcm_model[[7]] # overwrite climate projectios
+        bio_future[[12]] <- gcm_model[[8]] # overwrite climate projectios
+        names(bio_future) <- names(bio_current_pred)
+        
+        ensemble_gcm_model <- ensemble.raster(xn = bio_future,
+                                              models.list = enm_step2$models,
+                                              input.weights = output_weights,
+                                              thresholds = enm_step2$models$thresholds,
+                                              SINK = TRUE,
+                                              RASTER.species.name = species[i],
+                                              RASTER.stack.name = paste(gcm[k],rcp[r],scenario[s],sep = "_"))
+        save(ensemble_gcm_model,file = paste0("./models/", species[i],"_enmstep3.RData") )
+      }
+    }
   }
-  
   #return to parent directory
   setwd(parentwd)
   
 }
 
+  
 
 
 
