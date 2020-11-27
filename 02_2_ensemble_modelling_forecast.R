@@ -57,7 +57,7 @@ if(!require(BiodiversityR)) install.packages("BiodiversityR") else  library(Biod
 #...................................................
 # Run ensemble modelling ####
 
-gcm <- c("BCC-CSM2-MR","CanESM5","CNRM-CM6-1","CNRM_ESM2-1","IPSL-CM6A-LR","MIROC6","MIROC-ES2L")
+gcm <- c("BCC-CSM2-MR","CanESM5","CNRM-CM6-1","CNRM-ESM2-1","IPSL-CM6A-LR","MIROC6","MIROC-ES2L")
 scenario <- c("2021-2040","2041-2060")
 rcp <- c("ssp126","ssp585")
 species <- species_all[ini:fin]
