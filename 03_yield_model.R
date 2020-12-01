@@ -1,7 +1,7 @@
 ## PACKAGES 
 
 library(pacman)
-pacman::p_load(ggplot2,dplyr,sp,raster,skimr,lubridate,tidyr,gtable,gridExtra,plotrix,maptools,maps,ggmap,haven,usdm,MASS,Hmisc,mapdata)
+pacman::p_load(ggplot2,dplyr,sp,raster,skimr,lubridate,tidyr,gtable,gridExtra,plotrix,maptools,maps,ggmap,haven,usdm,MASS,Hmisc,mapdata,VSURF)
 
 ## Introduce data
 
@@ -16,7 +16,6 @@ options(scipen=999)
 #Focus on dependent variables
 
 ggplot(BD,x=1) + geom_boxplot(aes(y=cocoa_prod_total_kgs))
-ggplot(BD,x=1) + geom_boxplot(aes(y=cocoa_prod_total_kgsha))
 
 #Remove outliers
 
@@ -24,12 +23,6 @@ OutVals = boxplot(BD$cocoa_prod_total_kgs)$out
 Out_values<-which(BD$cocoa_prod_total_kgs %in% OutVals)
 
 BD<-BD[-c(Out_values),]
-
-OutVals = boxplot(BD$cocoa_prod_total_kgsha)$out
-Out_values<-which(BD$cocoa_prod_total_kgsha %in% OutVals)
-
-BD<-BD[-c(Out_values),]
-
 
 # Correct the types of variables
 
@@ -150,9 +143,9 @@ Merge<-cbind(BD,extractedWC,extractedsoil,extractedsuit)
 # Normality test (n>50)
 
 ks.test(BD$cocoa_prod_total_kgs,"pnorm")
-ks.test(BD$cocoa_prod_total_kgsha,"pnorm")
+ks.test(BD$cocoa_prod_total_kgs,"pnorm")
 hist(BD$cocoa_prod_total_kgs)
-hist(BD$cocoa_prod_total_kgsha)
+hist(BD$cocoa_prod_total_kgs)
 
 # Groups of variables
 
@@ -210,7 +203,7 @@ testing <- Environmental_data[-muestra,]
 
 #BACKWARD
 
-full.model <- glm(cocoa_prod_total_kgsha ~ ., data=training)
+full.model <- glm(cocoa_prod_total_kgs ~ ., data=training)
 summary(full.model)
 
 modback <- stepAIC(full.model, trace=TRUE, direction="backward")
@@ -221,8 +214,8 @@ summary(modback)
 
 #FORWARD
 
-empty.model <- glm(cocoa_prod_total_kgsha ~ 1, data=training)
-horizonte <- formula(cocoa_prod_total_kgsha ~ wc2.1_2.5m_bio_10 + wc2.1_2.5m_bio_14 + 
+empty.model <- glm(cocoa_prod_total_kgs ~ 1, data=training)
+horizonte <- formula(cocoa_prod_total_kgs ~ wc2.1_2.5m_bio_10 + wc2.1_2.5m_bio_14 + 
                        wc2.1_2.5m_bio_16 + wc2.1_2.5m_bio_18 + wc2.1_2.5m_bio_2 + 
                        wc2.1_2.5m_bio_3 + wc2.1_2.5m_bio_4 + bdod_mean30100cm_SoilGrids2 + 
                        clay_mean30100cm_SoilGrids2 + nitrogen_mean30100cm_SoilGrids2 + 
@@ -247,7 +240,7 @@ Environmental_data<-Merge[,c(92,96,98,100,103,112,113,114,116)]
 
 # GLM Management
 
-Management$cocoa_prod_total_kgsha<-Merge$cocoa_prod_total_kgsha #Include response variable
+Management$cocoa_prod_total_kgs<-Merge$cocoa_prod_total_kgs #Include response variable
 
 muestra <- sample(1:2910, 2037)
 training <- Management[muestra,]
@@ -255,7 +248,7 @@ testing <- Management[-muestra,]
 
 #BACKWARD
 
-full.model <- glm(cocoa_prod_total_kgsha ~ ., data=training)
+full.model <- glm(cocoa_prod_total_kgs ~ ., data=training)
 summary(full.model)
 
 modback <- stepAIC(full.model, trace=TRUE, direction="backward")
@@ -271,7 +264,7 @@ Management<-Merge[,c(27,28,29,30,33,34,89,58,47,68)]
 
 # GLM Losses
 
-Losses$cocoa_prod_total_kgsha<-Merge$cocoa_prod_total_kgsha #Include response variable
+Losses$cocoa_prod_total_kgs<-Merge$cocoa_prod_total_kgs #Include response variable
 Losses<-Losses[,-c(1,2)]
 muestra <- sample(1:2910, 2037)
 training <- Losses[muestra,]
@@ -279,7 +272,7 @@ testing <- Losses[-muestra,]
 
 #BACKWARD
 
-full.model <- glm(cocoa_prod_total_kgsha ~ ., data=training)
+full.model <- glm(cocoa_prod_total_kgs ~ ., data=training)
 summary(full.model)
 
 modback <- stepAIC(full.model, trace=TRUE, direction="backward")
@@ -295,7 +288,7 @@ Losses<-Merge[,c(72,76,79,82,83)]
 
 # GLM Characteristics
 
-Characteristics$cocoa_prod_total_kgsha<-Merge$cocoa_prod_total_kgsha
+Characteristics$cocoa_prod_total_kgs<-Merge$cocoa_prod_total_kgs
 
 skim(Characteristics)
 Characteristics<-Characteristics[,-c(4,15,16,17,22,27,28,29)] #Remove variables with NAN > 1500 observations
@@ -309,7 +302,7 @@ testing <- Characteristics[-muestra,]
 
 training<-na.omit(training)
 
-full.model <- glm(cocoa_prod_total_kgsha ~ ., data=training)
+full.model <- glm(cocoa_prod_total_kgs ~ ., data=training)
 summary(full.model)
 
 modback <- stepAIC(full.model, trace=TRUE, direction="backward")
@@ -320,8 +313,8 @@ summary(modback)
 
 #FORWARD
 
-empty.model <- glm(cocoa_prod_total_kgsha ~ 1, data=training)
-horizonte <- formula(cocoa_prod_total_kgsha ~ n_crops_produced + crops_important1 + 
+empty.model <- glm(cocoa_prod_total_kgs ~ 1, data=training)
+horizonte <- formula(cocoa_prod_total_kgs ~ n_crops_produced + crops_important1 + 
                        crops_important2 + crops_important1_5ago + crops_important2_5ago + 
                        cocoa_land_used_morethan5_ha + cocoa_land_numlandparcels + 
                        cocoa_years + cocoa_trees_most + cocoa_trees_age_5yo_ha + 
@@ -351,7 +344,7 @@ Characteristics<-Merge[,c(6,11,13,15,16,17,35,37,40,42)]
 
 # GLM Inputs
 
-Inputs$cocoa_prod_total_kgsha<-Merge$cocoa_prod_total_kgsha
+Inputs$cocoa_prod_total_kgs<-Merge$cocoa_prod_total_kgs
 
 skim(Inputs)
 Inputs<-Inputs[,-c(1,2,3,4,6)] #Remove variables with NAN > 1500 observations
@@ -365,7 +358,7 @@ testing <- Inputs[-muestra,]
 
 training<-na.omit(training)
 
-full.model <- glm(cocoa_prod_total_kgsha ~ ., data=training)
+full.model <- glm(cocoa_prod_total_kgs ~ ., data=training)
 summary(full.model)
 
 modback <- stepAIC(full.model, trace=TRUE, direction="backward")
@@ -376,8 +369,8 @@ summary(modback)
 
 #FORWARD
 
-empty.model <- glm(cocoa_prod_total_kgsha ~ 1, data=training)
-horizonte <- formula(cocoa_prod_total_kgsha ~ cocoa_pest_times + cocoa_lfert_applied_unitha + 
+empty.model <- glm(cocoa_prod_total_kgs ~ 1, data=training)
+horizonte <- formula(cocoa_prod_total_kgs ~ cocoa_pest_times + cocoa_lfert_applied_unitha + 
                        cocoa_herb_applied_unitha + cocoa_pest_applied_unitha + cocoa_fung_applied_unitha)
 
 modforw <- stepAIC(empty.model, trace=FALSE, direction="forward", scope=horizonte)
@@ -458,7 +451,7 @@ Varselection %>%
 
 ## MODEL 1
 
-VarModel1<-NewMerge[,c(5,9,10,13,17,24,25,26)]
+VarModel1<-NewMerge[,c(5,9,10,13,17,24,26,25)]
 VarModel1<-na.omit(VarModel1)
 muestra <- sample(1:291, 124)
 training <- VarModel1[muestra,]
@@ -469,9 +462,31 @@ full.model <- glm(cocoa_prod_total_kgs ~ clay_mean30100cm_SoilGrids2+cocoa_pest_
 summary(full.model)
 
 
+
 testing$prod_predicted<-predict(full.model, testing)
 
 RMSE<-sqrt( sum( (testing$cocoa_prod_total_kgs - testing$prod_predicted)^2 , na.rm = TRUE ) / nrow(testing) )
 AVE<-sum(-testing$cocoa_prod_total_kgs+testing$prod_predicted)/nrow(testing)
 R2<-cor(testing$cocoa_prod_total_kgs,testing$prod_predicted, method ="pearson",use = "complete.obs")
 S<-cor(testing$cocoa_prod_total_kgs,testing$prod_predicted, method ="spearman",use = "complete.obs")
+
+
+VarModel1<-na.omit(VarModel1)
+
+
+thres <- VSURF_thres(VarModel1[,1:7], VarModel1[,8], ntree = 100, nfor.thres = 20)
+thres.tuned <- tune(thres, nmin = 10)
+thres.tuned
+
+interp <- VSURF_interp(VarModel1[,1:7], VarModel1[,8], vars = thres$varselect.thres,
+                       nfor.interp = 10)
+interp.tuned <- tune(interp, nsd = 10)
+interp.tuned
+
+interp
+
+pred <- VSURF_pred(VarModel1[,1:7], VarModel1[,8], err.interp = interp$err.interp,
+                   varselect.interp = interp$varselect.interp, nfor.pred = 10)
+pred
+plot(pred)
+plot(pred, var.names=TRUE)
