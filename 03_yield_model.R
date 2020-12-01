@@ -5,7 +5,7 @@ pacman::p_load(ggplot2,dplyr,sp,raster,skimr,lubridate,tidyr,gtable,gridExtra,pl
 
 ## Introduce data
 
-setwd("C:/Users/USUARIO/Universidad de C?rdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability/BD/dataverse_files") 
+setwd("C:/Users/USUARIO/Universidad de Córdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability/BD/dataverse_files") 
 
 BD <- read.csv("BD_var_sel.csv")
 
@@ -113,7 +113,7 @@ BD$cocoa_trees_ha<- 10000/(BD$cocoa_tree_spacing_trees * BD$cocoa_tree_spacing_r
 
 #WorldClim
 
-common_path<-setwd("C:/Users/USUARIO/Universidad de C?rdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability/BD/WorldClim/wc2.1_2.5m_bio") 
+common_path<-setwd("C:/Users/USUARIO/Universidad de Córdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability/BD/WorldClim/wc2.1_2.5m_bio") 
 files <- list.files(
   path <- common_path,
   pattern <- "\\.tif$",
@@ -123,11 +123,11 @@ files <- list.files(
 
 StackWC<-stack(files)
 
-extractedWC<-as.data.frame(extract(StackWC,BD[,c("longitude","latitude")]))
+extractedWC<-as.data.frame(raster::extract(StackWC,BD[,c("longitude","latitude")]))
 
 #SoilData
 
-common_path<-setwd("C:/Users/USUARIO/Universidad de C?rdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability/BD/SoilGrids_Res") 
+common_path<-setwd("C:/Users/USUARIO/Universidad de Córdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability/BD/SoilGrids_Res") 
 files <- list.files(
   path <- common_path,
   pattern <- "\\.tif$",
@@ -137,13 +137,13 @@ files <- list.files(
 
 Stacksoil<-stack(files)
 
-extractedsoil<-as.data.frame(extract(Stacksoil,BD[,c("longitude","latitude")]))
+extractedsoil<-as.data.frame(raster::extract(Stacksoil,BD[,c("longitude","latitude")]))
 
 #Habitat suitability
 
-Suitability<-raster("C:/Users/USUARIO/Universidad de C?rdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability/processing/enm/Theobroma cacao/ensembles/suitability/Theobroma cacao__bio_current.grd")
+Suitability<-raster("C:/Users/USUARIO/Universidad de Córdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability/processing/enm/Theobroma cacao/ensembles/suitability/Theobroma cacao__bio_current.grd")
 
-extractedsuit<-as.data.frame(extract(Suitability,BD[,c("longitude","latitude")]))
+extractedsuit<-as.data.frame(raster::extract(Suitability,BD[,c("longitude","latitude")]))
 
 Merge<-cbind(BD,extractedWC,extractedsoil,extractedsuit)
 
@@ -399,7 +399,7 @@ Inputs<-Merge[,c(52,60,63)]
 ## Pre-selection of variables by group (~ 5 per group)
 
 NewMerge<-cbind(Environmental_data,Inputs,Management,Characteristics,Losses)
-NewMerge$cocoa_prod_total_kgsha<-Merge$cocoa_prod_total_kgsha
+NewMerge$cocoa_prod_total_kgs<-Merge$cocoa_prod_total_kgs
 
 str(NewMerge)
 
@@ -427,7 +427,8 @@ pvalue<-as.data.frame(pvalue[,c(38)])
 
 NewMerge<-NewMerge[,c(2,3,4,5,6,7,8,10,11,12,14,17,18,19,20,21,24,26,27,30,31,33,34,36)]# p-value<0.05
 
-NewMerge$cocoa_prod_total_kgsha<-Merge$cocoa_prod_total_kgsha
+NewMerge$cocoa_prod_total_kgs<-Merge$cocoa_prod_total_kgs
+NewMerge$suitability<-Merge$`raster::extract(Suitability, BD[, c("longitude", "latitude")])`
 
 Svalue<-rcorr(as.matrix(NewMerge), type='spearman')$r
 Svalue<-as.data.frame(Svalue[,c(25)])
@@ -457,29 +458,20 @@ Varselection %>%
 
 ## MODEL 1
 
-VarModel1<-NewMerge[,c(5,9,10,13,17,24,25)]
-
-muestra <- sample(1:2910, 2037)
+VarModel1<-NewMerge[,c(5,9,10,13,17,24,25,26)]
+VarModel1<-na.omit(VarModel1)
+muestra <- sample(1:291, 124)
 training <- VarModel1[muestra,]
 testing <- VarModel1[-muestra,]
 
-training<- training %>% 
-  dplyr::distinct(clay_mean30100cm_SoilGrids2, .keep_all = TRUE)
 
-training %>%
-  select_if(is.factor) %>%
-  gather() %>%
-  ggplot(aes(value)) + geom_bar() + facet_wrap(~key,scales='free') +
-  theme(axis.text=element_text(size=6))
-
-full.model <- glm(cocoa_prod_total_kgsha ~ ., data=training)
+full.model <- glm(cocoa_prod_total_kgs ~ clay_mean30100cm_SoilGrids2+cocoa_pest_applied_unitha+cocoa_fung_applied_unitha+cocoa_pruning_lab_n_ha+cocoa_land_used_morethan5_ha+suitability+cocoa_losses_pests_type_6, data=training)
 summary(full.model)
-
 
 
 testing$prod_predicted<-predict(full.model, testing)
 
-RMSE<-sqrt( sum( (testing$cocoa_prod_total_kgsha - testing$prod_predicted)^2 , na.rm = TRUE ) / nrow(testing) )
-AVE<-sum(-testing$cocoa_prod_total_kgsha+testing$prod_predicted)/nrow(testing)
-R2<-cor(testing$cocoa_prod_total_kgsha,testing$prod_predicted, method ="pearson",use = "complete.obs")
-S<-cor(testing$cocoa_prod_total_kgsha,testing$prod_predicted, method ="spearman",use = "complete.obs")
+RMSE<-sqrt( sum( (testing$cocoa_prod_total_kgs - testing$prod_predicted)^2 , na.rm = TRUE ) / nrow(testing) )
+AVE<-sum(-testing$cocoa_prod_total_kgs+testing$prod_predicted)/nrow(testing)
+R2<-cor(testing$cocoa_prod_total_kgs,testing$prod_predicted, method ="pearson",use = "complete.obs")
+S<-cor(testing$cocoa_prod_total_kgs,testing$prod_predicted, method ="spearman",use = "complete.obs")
