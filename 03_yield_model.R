@@ -5,9 +5,9 @@ pacman::p_load(ggplot2,dplyr,sp,raster,skimr,lubridate,tidyr,gtable,gridExtra,pl
 
 ## Introduce data
 
-setwd("C:/Users/USUARIO/Universidad de C?rdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability/BD/dataverse_files") 
+setwd("C:/Users/Pablo/OneDrive - Universidad de Córdoba/1_proyectos/2019_CocoAgroForecast/WP5 - suitability/") 
 
-BD <- read.csv("BD_var_sel.csv")
+BD <- read.csv("BD/dataverse_files/BD_var_sel.csv")
 
 ## Data analysis
 
@@ -113,7 +113,7 @@ BD$cocoa_trees_ha<- 10000/(BD$cocoa_tree_spacing_trees * BD$cocoa_tree_spacing_r
 
 #WorldClim
 
-common_path<-setwd("C:/Users/USUARIO/Universidad de C?rdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability/BD/WorldClim/wc2.1_2.5m_bio") 
+common_path<- "./BD/WorldClim/wc2.1_2.5m_bio/" 
 files <- list.files(
   path <- common_path,
   pattern <- "\\.tif$",
@@ -123,11 +123,11 @@ files <- list.files(
 
 StackWC<-stack(files)
 
-extractedWC<-as.data.frame(extract(StackWC,BD[,c("longitude","latitude")]))
+extractedWC<-as.data.frame(raster::extract(StackWC,BD[,c("longitude","latitude")]))
 
 #SoilData
 
-common_path<-setwd("C:/Users/USUARIO/Universidad de C?rdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability/BD/SoilGrids_Res") 
+common_path<-c("BD/SoilGrids_Res/") 
 files <- list.files(
   path <- common_path,
   pattern <- "\\.tif$",
@@ -137,13 +137,13 @@ files <- list.files(
 
 Stacksoil<-stack(files)
 
-extractedsoil<-as.data.frame(extract(Stacksoil,BD[,c("longitude","latitude")]))
+extractedsoil<-as.data.frame(raster::extract(Stacksoil,BD[,c("longitude","latitude")]))
 
 #Habitat suitability
 
-Suitability<-raster("C:/Users/USUARIO/Universidad de C?rdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability/processing/enm/Theobroma cacao/ensembles/suitability/Theobroma cacao__bio_current.grd")
+Suitability<- raster("processing/enm/Theobroma cacao/ensembles/suitability/Theobroma cacao__bio_current.grd")
 
-extractedsuit<-as.data.frame(extract(Suitability,BD[,c("longitude","latitude")]))
+extractedsuit<-as.data.frame(raster::extract(Suitability,BD[,c("longitude","latitude")]))
 
 Merge<-cbind(BD,extractedWC,extractedsoil,extractedsuit)
 
