@@ -5,7 +5,7 @@ pacman::p_load(ggplot2,dplyr,sp,raster,skimr,lubridate,tidyr,gtable,gridExtra,pl
 
 ## Introduce data
 
-setwd("C:/Users/USUARIO/Universidad de Córdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability/BD/dataverse_files") 
+setwd("C:/Users/USUARIO/Universidad de C?rdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability/BD/dataverse_files") 
 
 BD <- read.csv("BD_var_sel.csv")
 
@@ -113,7 +113,7 @@ BD$cocoa_trees_ha<- 10000/(BD$cocoa_tree_spacing_trees * BD$cocoa_tree_spacing_r
 
 #WorldClim
 
-common_path<-setwd("C:/Users/USUARIO/Universidad de Córdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability/BD/WorldClim/wc2.1_2.5m_bio") 
+common_path<-setwd("C:/Users/USUARIO/Universidad de C?rdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability/BD/WorldClim/wc2.1_2.5m_bio") 
 files <- list.files(
   path <- common_path,
   pattern <- "\\.tif$",
@@ -127,7 +127,7 @@ extractedWC<-as.data.frame(extract(StackWC,BD[,c("longitude","latitude")]))
 
 #SoilData
 
-common_path<-setwd("C:/Users/USUARIO/Universidad de Córdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability/BD/SoilGrids_Res") 
+common_path<-setwd("C:/Users/USUARIO/Universidad de C?rdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability/BD/SoilGrids_Res") 
 files <- list.files(
   path <- common_path,
   pattern <- "\\.tif$",
@@ -141,7 +141,7 @@ extractedsoil<-as.data.frame(extract(Stacksoil,BD[,c("longitude","latitude")]))
 
 #Habitat suitability
 
-Suitability<-raster("C:/Users/USUARIO/Universidad de Córdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability/processing/enm/Theobroma cacao/ensembles/suitability/Theobroma cacao__bio_current.grd")
+Suitability<-raster("C:/Users/USUARIO/Universidad de C?rdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability/processing/enm/Theobroma cacao/ensembles/suitability/Theobroma cacao__bio_current.grd")
 
 extractedsuit<-as.data.frame(extract(Suitability,BD[,c("longitude","latitude")]))
 
@@ -300,7 +300,7 @@ Characteristics$cocoa_prod_total_kgsha<-Merge$cocoa_prod_total_kgsha
 skim(Characteristics)
 Characteristics<-Characteristics[,-c(4,15,16,17,22,27,28,29)] #Remove variables with NAN > 1500 observations
 
- #Include response variable
+#Include response variable
 muestra <- sample(1:2910, 2037)
 training <- Characteristics[muestra,]
 testing <- Characteristics[-muestra,]
