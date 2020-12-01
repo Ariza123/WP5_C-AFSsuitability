@@ -26,6 +26,7 @@ spnames <- sort(sp) # hacer acrónimos
 # Prepare data and files to process maps ####
 # names of RCP scenarios
 RCP <- c("ssp126","ssp585")
+scenario <- c("2021-2040","2041-2060")
 
 #define extention of study area
 ext <- raster::extent(-17,15,2,13)
@@ -78,57 +79,59 @@ for (i in seq_along(spnames)) {
   presence_current <- raster::stack(presence_current)
 
   # run over RCP models
-  for(j in seq_along(RCP)) {
-    # read presence-absence rasters under modelled RCP scenario##
-   presence_rcp <- raster::stack(list.files(paste0("processing/enm/", spnames[i] , "/ensembles/presence"),
-               pattern = paste0(RCP[j],"_2021-2040.gri$"),
-               full.names = TRUE))
-
-    # mean values of 1-0 raster (presence and absence)
-    # this is also the measure agreement raster
-    presence_rcp_mean <- raster::calc(presence_rcp, fun = mean)
+  for (s in seq_along(scenario)){
     
-
-    # Define likelihood RCP mask
-    # more than 66% of the raster must agree on the presence
-    # of the species in each grid cell
-    # further information about likelihood at Mastrandrea el al (2010)
-    # raster for future presence-absence
-    presence_rcp <- presence_rcp_mean
-    presence_rcp[presence_rcp[] < 0.659] <- 0 
-    presence_rcp[presence_rcp[] >= 0.659] <- 1 
-    #raster of threshold for future presence (defined by likelihood)
-    thresh_presence_rcp <- presence_rcp
-    thresh_presence_rcp[thresh_presence_rcp[] == 0] <- NA
-    
-    #identify change in suitability in RCP scenario
-    #future minus current raster
-    presence_rcp[presence_rcp[]==1] <- 2
-    #change in suitability codes
-    #  1 = always suitable
-    #  0 = never suitable
-    # -1 = no longer suitable
-    #  2 = new habitat
-    change_suit_rcp <- raster::overlay(presence_rcp, 
-                                       presence_current, 
-                                       fun = function(x,y) {(x-y)})
-    
-    # write tif files
-    # current presence-absence layer 
-    writeRaster(change_suit_rcp, 
-                filename = paste0(output2,"/",spnames[i],"_",RCP[j],"_change.tif"), 
-                format = "GTiff", 
-                overwrite = TRUE)
-    writeRaster(presence_rcp, 
-                filename = paste0(output2,"/",spnames[i],"_",RCP[j],"_presence.tif"), 
-                format = "GTiff", 
-                overwrite = TRUE)
-    writeRaster(presence_rcp_mean, 
-                filename = paste0(output2,"/",spnames[i],"_",RCP[j],"_presence_agreement.tif"), 
-                format = "GTiff", 
-                overwrite = TRUE)
-  }
+    for(j in seq_along(RCP)) {
+      # read presence-absence rasters under modelled RCP scenario##
+     presence_rcp <- raster::stack(list.files(paste0("processing/enm/", spnames[i] , "/ensembles/presence"),
+                 pattern = paste0(RCP[j],"_",scenario[s],".gri$"),
+                 full.names = TRUE))
   
+      # mean values of 1-0 raster (presence and absence)
+      # this is also the measure agreement raster
+      presence_rcp_mean <- raster::calc(presence_rcp, fun = mean)
+      
+  
+      # Define likelihood RCP mask
+      # more than 66% of the raster must agree on the presence
+      # of the species in each grid cell
+      # further information about likelihood at Mastrandrea el al (2010)
+      # raster for future presence-absence
+      presence_rcp <- presence_rcp_mean
+      presence_rcp[presence_rcp[] < 0.659] <- 0 
+      presence_rcp[presence_rcp[] >= 0.659] <- 1 
+      #raster of threshold for future presence (defined by likelihood)
+      thresh_presence_rcp <- presence_rcp
+      thresh_presence_rcp[thresh_presence_rcp[] == 0] <- NA
+      
+      #identify change in suitability in RCP scenario
+      #future minus current raster
+      presence_rcp[presence_rcp[]==1] <- 2
+      #change in suitability codes
+      #  1 = always suitable
+      #  0 = never suitable
+      # -1 = no longer suitable
+      #  2 = new habitat
+      change_suit_rcp <- raster::overlay(presence_rcp, 
+                                         presence_current, 
+                                         fun = function(x,y) {(x-y)})
+      
+      # write tif files
+      # current presence-absence layer 
+      writeRaster(change_suit_rcp, 
+                  filename = paste0(output2,"/",spnames[i],"_",RCP[j],"_",scenario[s],"_change.tif"), 
+                  format = "GTiff", 
+                  overwrite = TRUE)
+      writeRaster(presence_rcp, 
+                  filename = paste0(output2,"/",spnames[i],"_",RCP[j],"_",scenario[s],"_presence.tif"), 
+                  format = "GTiff", 
+                  overwrite = TRUE)
+      writeRaster(presence_rcp_mean, 
+                  filename = paste0(output2,"/",spnames[i],"_",RCP[j],"_",scenario[s],"_presence_agreement.tif"), 
+                  format = "GTiff", 
+                  overwrite = TRUE)
+    }
+  }
   # current presence-absence
   writeRaster(presence_current, 
               filename = paste0(output2,"/",spnames[i],"_presence.tif"), 
