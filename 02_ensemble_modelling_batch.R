@@ -3,7 +3,8 @@
 
 if(!require(raster)) install.packages("raster") else library(raster)
 
-setwd("C:/Users/USUARIO/Universidad de Córdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability")
+# setwd("C:/Users/USUARIO/Universidad de Córdoba/Pablo Gonzalez Moreno - 2019_CocoAgroForecast/WP5 - suitability")
+setwd("C:/Users/Pablo/OneDrive - Universidad de Córdoba/1_proyectos/2019_CocoAgroForecast/WP5 - suitability")
 
 
 # Final seletion of variables for modelling
@@ -38,14 +39,19 @@ bio_current <- raster::stack(files[c(1:17)])
 ####################
 # Test collinearity
 BD_calib_variables <- raster::extract(bio_current,BD_calib[,c("decimalLongitude","decimalLatitude")],df=T)
+names(BD_calib_variables) <- c("ID","BDOD","CEC","CLAY","NITROGEN", "pH" ,"SAND",
+                               "SILT", "BIO13","BIO14","BIO15",
+                               "BIO18","BIO19","BIO2","BIO3" ,               
+                               "BIO4","BIO8","BIO9")
+
 # summary(BD_calib_variables)
 # 
-# library(corrplot)
-# cor_mat <- cor(na.omit(BD_calib_variables))
-# 
-# png(filename = "processing/figures/corrplot_all.png" , width=600,height = 600,pointsize = 9 )
-# corrplot(cor_mat,method = "number",order="hclust",addrect = 4,is.corr = T, )
-# dev.off()
+library(corrplot)
+cor_mat <- cor(na.omit(BD_calib_variables))
+
+png(filename = "processing/figures/corrplot_all.png" , width=400,height = 400,pointsize = 9 )
+corrplot(cor_mat,method = "number",order="hclust",addrect = 4,is.corr = T, )
+dev.off()
 
 #####################
 # Prepare data
