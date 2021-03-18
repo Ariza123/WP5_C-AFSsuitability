@@ -188,26 +188,57 @@ stats_especie_all <- unique.data.frame(stats_especie_all)
 # export dataframe
 write_csv(stats_especie_all, paste0("processing/figures/suitability_vs_bio4.csv"))
 
+# Hacemos gráficas
+stats_especie_all <- read.csv("processing//figures/suitability_vs_bio4.csv")
+dic_species <- read.csv("BD/dic_species.csv",sep=";")
 
-
+stats_especie_all <- merge(stats_especie_all,dic_species,by.x="specie",by.y="Scientific.names",all.x=T)
 
 library(ggrepel)
 png(filename = "processing/figures/suitability_vs_bio4.png",
     width = 600, height = 600, units = "px", pointsize = 18,
     bg = "white")
 
-ggplot(subset(stats_especie_all,scenario=="current"),aes(x=cocoa, y=bio4/100,label=specie))+
-  geom_point() + geom_text_repel() +
+ggplot(subset(stats_especie_all,scenario=="current"),aes(x=cocoa, y=bio4,label=specie,colour = factor(Uses)))+
+  geom_point()+geom_text_repel()+
   scale_fill_viridis(discrete=TRUE) +
   scale_color_viridis(discrete=TRUE) +
   theme_bw(base_size = 16) + theme(legend.position="none") +
   xlab("Cocoa suitability") +
-  ylab("Temperature seasonality")
+  ylab("BIO4-Temperature seasonality (ºC)")
+
+#  annotation_custom(,xmin=0.6, xmax=1, ymin=1.4, ymax=1.6) #para añadir algo dentro
+
+
+dev.off()
+
+### Adding trajectories
+# change format to wide
+stats_especie_all %<>%  
+  mutate(bio4=bio4/100) %>%
+  tidyr::pivot_wider(names_from=c(scenario),values_from=c(cocoa,bio4))
+  
+names(stats_especie_all)<-c("specie","Local.names","X","uses","X.1","Tree.propagation","cocoa_current","cocoa_20212040_ssp126" ,"cocoa_20212040_ssp585", "cocoa_20412060_ssp126",
+ "cocoa_20412060_ssp585" ,"bio4_current","bio4_20212040_ssp126"  ,"bio4_20212040_ssp585"  ,"bio4_20412060_ssp126","bio4_20412060_ssp585" )
+
+png(filename = "processing/figures/suitability_vs_bio4_traj.png",
+    width = 600, height = 600, units = "px", pointsize = 18,
+    bg = "white")
+
+ggplot(stats_especie_all,aes(x=cocoa_current,  y=bio4_current,color=factor(uses),label=specie))+
+  geom_point()+geom_text_repel()+
+  geom_segment( mapping = aes(x=cocoa_current, xend=cocoa_20412060_ssp585,
+                    y=bio4_current, yend=bio4_20412060_ssp585,color=factor(uses)),
+                    arrow=arrow(length = unit(0.2, "cm")),
+                    size=0.5)+
+  
+  scale_color_viridis(discrete=TRUE) +
+  theme_bw(base_size = 16) + theme(legend.position="none") +
+  xlab("Cocoa suitability") +
+  ylab("BIO4-Temperature seasonality (ºC)")
 
 #  annotation_custom(,xmin=0.6, xmax=1, ymin=1.4, ymax=1.6) #para añadir algo dentro
   
   
-
 dev.off()
 
-plot(bio_4/100)

@@ -37,7 +37,7 @@ proj <- "+proj=longlat +datum=WGS84"
 #..............................................
 #..............................................
 # Load mask
-mascara <- "processing/capa_mask/Cropland.shp"
+mascara <- "BD/Modified_grid/Cropland.shp"
 mascara %<>%
   readOGR(.) %>%
   raster::crop(. , ext)
@@ -225,15 +225,19 @@ for (i in spnames) {
   changes <- NULL
   
   for (i in spnames) {
+    cat("\n######## \n Ensemble modelling for", spnames[i], "\n Time:", date())
     for (s in seq_along(scenario)){
       for (j in RCP) {
         
         if (j=="current") {
           r <- raster(paste("processing/species_sets/", i, "/", i, "_presence.tif",sep="" )) 
-          r <- raster::mask(r , mascara, inverse = FALSE) 
+          r <- raster::mask(r , mascara, inverse = FALSE)
+          writeRaster(r,filename=paste("processing/species_sets/", i, "/", i, "_presence_mask.tif",sep = ""))
         }else{
           r <- raster(paste("processing/species_sets/", i, "/", i, "_", j ,"_",scenario[s],"_change.tif",sep="" ))
           r <- raster::mask(r , mascara, inverse = FALSE)
+          writeRaster(r,filename=paste("processing/species_sets/", i, "/", i, "_", j ,"_",scenario[s],"_change_mask.tif",sep="" ))
+          
         }
         
         land <- r
@@ -272,6 +276,8 @@ for (i in spnames) {
         frequencies[11] <- frequencies[,10] - frequencies[,9]
         #add to changes dataframe
         changes <- rbind(changes, frequencies)
+        
+        cat("Step 2: model species distribution with selected ENM algorithms \n")
         
         
       }
