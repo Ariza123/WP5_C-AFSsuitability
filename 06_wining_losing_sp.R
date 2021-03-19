@@ -115,7 +115,7 @@ for (i in spnames) {
   
   
    # Calculate changes ####
-  changes <- read.csv("processing/figures/")
+  changes <- read.csv("processing/figures/wining_losing_sp.csv")
   changes <- changes[,-c(7:11)]
   names(changes) <- c("acronym","System","never","remain","no_longer","new")
   
@@ -134,11 +134,20 @@ for (i in spnames) {
   
   
   # add names and labels of focal species 
-  # uses <- sort(unique(changes$main_use))
+  dic_species <- read.csv("BD/dic_species.csv",sep=";")
+  
+  changes <- merge(changes,dic_species,by.x="acronym",by.y="Scientific.names",all.x=T)
+  changes$Uses <- as.factor(changes$Uses) 
   
   #..............................................
   #..............................................
   # Make charts ####
+  
+  # colores de los nombres de las especies
+  # miscolores <- c("#00AFBB", "#E7B800", "#FC4E07","light green")
+  miscolores <- viridis(length(levels(changes$Uses)))
+  # miscolores <- "black"
+  
   # Loop por emission scenario
   plots <- list()
   it <- 1
@@ -177,7 +186,7 @@ for (i in spnames) {
              y = NULL) +
         facet_grid(area ~ System_label) +
         theme(axis.text.y = element_text(size = 10, angle = 0, hjust = 1, 
-                                         vjust = 0.5, face="italic", colour = "black"),
+                                         vjust = 0.5, face="italic", colour=miscolores[df$Uses]),
               axis.text.x = element_text(size = 12, angle = 0, hjust = 0.5, 
                                          vjust = 1, face="plain", colour = "black"),
               axis.title = element_text(size = 12, face="bold"),
@@ -225,18 +234,18 @@ for (i in spnames) {
   changes <- NULL
   
   for (i in spnames) {
-    cat("\n######## \n Ensemble modelling for", spnames[i], "\n Time:", date())
+    cat("/n######## /n Ensemble modelling for", i, "/n Time:", date())
     for (s in seq_along(scenario)){
       for (j in RCP) {
         
         if (j=="current") {
           r <- raster(paste("processing/species_sets/", i, "/", i, "_presence.tif",sep="" )) 
           r <- raster::mask(r , mascara, inverse = FALSE)
-          writeRaster(r,filename=paste("processing/species_sets/", i, "/", i, "_presence_mask.tif",sep = ""))
+          writeRaster(r,filename=paste("processing/species_sets/", i, "/", i, "_presence_mask.tif",sep = ""),overwrite=T)
         }else{
           r <- raster(paste("processing/species_sets/", i, "/", i, "_", j ,"_",scenario[s],"_change.tif",sep="" ))
           r <- raster::mask(r , mascara, inverse = FALSE)
-          writeRaster(r,filename=paste("processing/species_sets/", i, "/", i, "_", j ,"_",scenario[s],"_change_mask.tif",sep="" ))
+          writeRaster(r,filename=paste("processing/species_sets/", i, "/", i, "_", j ,"_",scenario[s],"_change_mask.tif",sep="" ),overwrite=T)
           
         }
         
@@ -291,7 +300,7 @@ for (i in spnames) {
   
   
   # Calculate changes ####
-  changes <- read.csv("processing/figures/")
+  changes <- read.csv("processing/figures/wining_losing_sp_withmask.csv")
   changes <- changes[,-c(7:11)]
   names(changes) <- c("acronym","System","never","remain","no_longer","new")
   
@@ -308,6 +317,10 @@ for (i in spnames) {
   changes$System_label <- as.factor(changes$System)
   # levels(changes$System_label) <- RCP
   
+  dic_species <- read.csv("BD/dic_species.csv",sep=";")
+  
+  changes <- merge(changes,dic_species,by.x="acronym",by.y="Scientific.names",all.x=T)
+  changes$Uses <- as.factor(changes$Uses) 
   
   # add names and labels of focal species 
   # uses <- sort(unique(changes$main_use))
@@ -315,6 +328,12 @@ for (i in spnames) {
   #..............................................
   #..............................................
   # Make charts ####
+  
+  # colores de los nombres de las especies
+  # miscolores <- c("#00AFBB", "#E7B800", "#FC4E07","light green")
+  miscolores <- viridis(length(levels(changes$Uses)))
+  # miscolores <- "black"
+  
   # Loop por emission scenario
   plots <- list()
   it <- 1
@@ -353,7 +372,7 @@ for (i in spnames) {
              y = NULL) +
         facet_grid(area ~ System_label) +
         theme(axis.text.y = element_text(size = 10, angle = 0, hjust = 1, 
-                                         vjust = 0.5, face="italic", colour = "black"),
+                                         vjust = 0.5, face="italic", colour = miscolores[df$Uses]),
               axis.text.x = element_text(size = 12, angle = 0, hjust = 0.5, 
                                          vjust = 1, face="plain", colour = "black"),
               axis.title = element_text(size = 12, face="bold"),

@@ -146,6 +146,9 @@ files <- list.files(
 )
 bio_4 <- crop(raster(files[15]),ext)
 
+
+### Sin mascara
+
 stats_especie_all <- NULL
 
 for (i in spnames) {
@@ -195,22 +198,6 @@ dic_species <- read.csv("BD/dic_species.csv",sep=";")
 stats_especie_all <- merge(stats_especie_all,dic_species,by.x="specie",by.y="Scientific.names",all.x=T)
 
 library(ggrepel)
-png(filename = "processing/figures/suitability_vs_bio4.png",
-    width = 600, height = 600, units = "px", pointsize = 18,
-    bg = "white")
-
-ggplot(subset(stats_especie_all,scenario=="current"),aes(x=cocoa, y=bio4,label=specie,colour = factor(Uses)))+
-  geom_point()+geom_text_repel()+
-  scale_fill_viridis(discrete=TRUE) +
-  scale_color_viridis(discrete=TRUE) +
-  theme_bw(base_size = 16) + theme(legend.position="none") +
-  xlab("Cocoa suitability") +
-  ylab("BIO4-Temperature seasonality (ºC)")
-
-#  annotation_custom(,xmin=0.6, xmax=1, ymin=1.4, ymax=1.6) #para añadir algo dentro
-
-
-dev.off()
 
 ### Adding trajectories
 # change format to wide
@@ -241,4 +228,6 @@ ggplot(stats_especie_all,aes(x=cocoa_current,  y=bio4_current,color=factor(uses)
   
   
 dev.off()
+
+
 

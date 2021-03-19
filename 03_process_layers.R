@@ -24,25 +24,9 @@ sp <- unique(BD_calib$species)
   # faltarían acrónimos
 
 
-# names of RCP scenarios and crops 
-# crop <- c("COFFAR", "THEOCA")
-
 RCP <- c("ssp126","ssp585")
 
-# Read layer of inland water and remove areas of raster in water (lakes, rivers, etc)
-#source http://www.diva-gis.org/Data
-# lakes <- "data/shapefiles/water_areas/mesoamerica_water_areas_dcw.shp"
-# lakes %<>%  
-#   readOGR(.) %>%
-#   subset(.$HYC_DESCRI == "Perennial/Permanent") %>%
-#   raster::crop(. , ext)
-# 
-# 
-# # Read country borders 
-# border <- "data/shapefiles/country_borders/Mesoamerica.shp"
-# border %<>% 
-#   readOGR(.) %>%
-#   raster::crop(. , ext)
+
 
 # Read rasters of tree species
 # run over the raster of current presence
@@ -165,15 +149,17 @@ for (i in seq_along(RCP)){
 }
 
 # Generate rasters dividing species per main use
-uses <- sort(unique(sp$main_use))
+dic_species <- read.csv("BD/dic_species.csv",sep=";")
+
+sp <- merge(data.frame(sp),dic_species,by.x="sp",by.y="Scientific.names",all.x=T)
+uses <- sort(unique(sp$Uses))
 
 for(i in seq_along(uses)){
 
-  sp_use <-  sp$acronym[sp$main_use %in% uses[i]]
 
   for(j in seq_along(RCP)){
-
-    r <- subset(tree_rcp, names(tree_rcp) %in% paste0(sp_use , RCP[j]) )
+    tree_rcp <- stack(paste("processing/layers_comb/trees_rcp", RCP[j],".gri",sep="" ))
+    r <- subset(tree_rcp, names(tree_rcp) %in% paste0(sp_use[i] , RCP[j]) )
 
     r <- raster::stack(r)
 
@@ -197,112 +183,4 @@ for(i in seq_along(uses)){
 
 }
 
-
-# 
-# # CROP #####
-# # read rasters of i crop species
-# crop_r <- list()
-# #run over crop names and rcp scenarios to identify changes in suitability between scenarios
-# for (i in seq_along(crop)){
-# 
-#   r <- list.files(paste0("processing/enm/", crop[i] , "/ensembles/presence"),
-#                   pattern= paste0(crop[i],"_bio_current.gri$",sep=""),
-#                   full.names = TRUE)
-#   
-#   #read current raster of i species
-#   r %<>%
-#     raster::stack(.) %>%
-#     raster::crop(. , ext) %>% #crop rasters within defined extention
-#     raster::mask(. , border, inverse = FALSE) %>% 
-#     raster::mask(. , lakes, inverse = TRUE)
-#   
-#   writeRaster(r, 
-#               filename = paste0("processing/layers_comb/", crop[i], "_baseline.grd"), 
-#               format = "raster", 
-#               overwrite = TRUE)
-# 
-#   #add to crop_raster list
-#   crop_r[[crop[i]]] <- r
-#   # run over rcp scenarios for i crop species
-#   for (j in seq_along(RCP)){
-#     
-#     #read rasters of j rcp scenario
-#     rf <- list.files(paste0("processing/enm/", crop[i] , "/ensembles/presence"),
-#                      pattern = paste0(RCP[j],".gri$",sep=""),
-#                      full.names = TRUE)
-#       
-#     rf %<>%
-#       raster::stack(.) %>%
-#       raster::crop(. , ext) %>% #crop rasters within defined extention
-#       raster::mask(. , border, inverse=FALSE) %>% 
-#       raster::mask(. , lakes, inverse=TRUE)  %>%
-#       raster::calc(. , fun = mean) #calculate the mean of all k rcp scenarios
-#     
-#     #reclassify raster, values 
-#     rf[rf[] < 0.659 ] <- 0 #if less than 66% of models agree with the presence then 0
-#     rf[rf[] > 0.659 ] <- 2 #if more than 66% of models agree with the presence then 2 
-#     #add to list
-#     crop_r[[paste0(crop[i],RCP[j])]] <- rf
-#     #identify changes in suitability between current and j rcp scenario of each i crop species
-#     #change in suitability codes
-#     #  1 = always suitable
-#     #  0 = never suitable
-#     # -1 = no longer suitable
-#     #  2 = new habitat
-#     rf %<>%
-#       raster::overlay( . , r, fun = function(x,y) {(x-y)})
-#     
-#     writeRaster(rf, 
-#                 filename = paste0("processing/layers_comb/", crop[i], "_rcp", RCP[j],"_change.tif"), 
-#                 format="GTiff", 
-#                 overwrite=TRUE)
-#     
-#     crop_r[[ paste0(crop[i],RCP[j],"_change",sep="") ]] <- rf
-#   
-#   }
-# 
-# }
-# 
-# # separate rasters of change in suitability for each code
-# changes <- tibble(code=c( 1, -1, 2, 0),
-#                   change=c("suitable","no_longer","new_habitat", "never"))
-# 
-# #run loop over codes of suitability change
-# 
-# for (i in seq_along(crop)){
-#   for (j in seq_along(RCP)){
-#     
-#     rf <- NULL
-#     
-#     for(k in 1:nrow(changes)) {
-#       
-#       r <- crop_r[[ paste0(crop[i], RCP[j], "_change") ]]
-#       
-#       r[r[] != as.integer(as.character(changes[k,1])) ] <- NA
-#       
-#       r[r[] == as.integer(as.character(changes[k,1])) ] <- 1
-#       
-#       names(r) <- changes[k,2]
-#       
-#       rf <- stack(r, rf)
-#       
-#       
-#     }
-#     
-#     names(rf)
-#     
-#     rf <- subset(rf , changes$change)
-#     
-#     writeRaster(rf, 
-#                 filename = paste0("processing/layers_comb/",crop[i], "_rcp", RCP[j],".grd"), 
-#                 format = "raster", 
-#                 overwrite = TRUE, 
-#                 bylayer = FALSE)
-#     
-#   }
-# }
-# 
-# 
-# 
-# 
-# 
+ 
