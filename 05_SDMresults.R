@@ -199,10 +199,14 @@ stats_especie_all <- merge(stats_especie_all,dic_species,by.x="specie",by.y="Sci
 
 library(ggrepel)
 
+# same to suitable area changes
+miscolores <- c("darkmagenta", "darkgreen", "darkblue","chocolate4")
+
 ### Adding trajectories
 # change format to wide
 stats_especie_all %<>%  
-  mutate(bio4=bio4/100) %>%
+  filter(specie!="Theobroma cacao") %>%
+  mutate(bio4=bio4/100,Uses=as.factor(Uses)) %>%
   tidyr::pivot_wider(names_from=c(scenario),values_from=c(cocoa,bio4))
   
 names(stats_especie_all)<-c("specie","Local.names","X","uses","X.1","Tree.propagation","cocoa_current","cocoa_20212040_ssp126" ,"cocoa_20212040_ssp585", "cocoa_20412060_ssp126",
@@ -212,14 +216,13 @@ png(filename = "processing/figures/suitability_vs_bio4_traj.png",
     width = 600, height = 600, units = "px", pointsize = 18,
     bg = "white")
 
-ggplot(stats_especie_all,aes(x=cocoa_current,  y=bio4_current,color=factor(uses),label=specie))+
+ggplot(stats_especie_all,aes(x=cocoa_current,  y=bio4_current,color=uses,label=specie))+
   geom_point()+geom_text_repel()+
   geom_segment( mapping = aes(x=cocoa_current, xend=cocoa_20412060_ssp585,
-                    y=bio4_current, yend=bio4_20412060_ssp585,color=factor(uses)),
+                    y=bio4_current, yend=bio4_20412060_ssp585,color=uses),
                     arrow=arrow(length = unit(0.2, "cm")),
                     size=0.5)+
-  
-  scale_color_viridis(discrete=TRUE) +
+  scale_color_manual(values = miscolores)+
   theme_bw(base_size = 16) + theme(legend.position="none") +
   xlab("Cocoa suitability") +
   ylab("BIO4-Temperature seasonality (ºC)")

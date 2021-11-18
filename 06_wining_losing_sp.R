@@ -144,8 +144,8 @@ for (i in spnames) {
   # Make charts ####
   
   # colores de los nombres de las especies
-  # miscolores <- c("#00AFBB", "#E7B800", "#FC4E07","light green")
-  miscolores <- viridis(length(levels(changes$Uses)))
+  miscolores <- c("#00AFBB", "#E7B800", "#FC4E07","light green")
+  # miscolores <- viridis(length(levels(changes$Uses)))
   # miscolores <- "black"
   
   # Loop por emission scenario
@@ -320,7 +320,12 @@ for (i in spnames) {
   dic_species <- read.csv("BD/dic_species.csv",sep=";")
   
   changes <- merge(changes,dic_species,by.x="acronym",by.y="Scientific.names",all.x=T)
+  changes[changes$acronym=="Theobroma cacao","Uses"] <- "cocoa"
   changes$Uses <- as.factor(changes$Uses) 
+  
+  # change use type to cocoa
+  
+
   
   # add names and labels of focal species 
   # uses <- sort(unique(changes$main_use))
@@ -330,8 +335,9 @@ for (i in spnames) {
   # Make charts ####
   
   # colores de los nombres de las especies
-  # miscolores <- c("#00AFBB", "#E7B800", "#FC4E07","light green")
-  miscolores <- viridis(length(levels(changes$Uses)))
+  miscolores <- c("black","darkmagenta", "darkgreen", "darkblue","chocolate4")
+  yetiqueta <- "Suitable area not deforestation (%)"
+  # miscolores <- viridis(length(levels(changes$Uses)))
   # miscolores <- "black"
   
   # Loop por emission scenario
@@ -364,11 +370,12 @@ for (i in spnames) {
                                    y=id, yend=id),
                      # arrow=arrow(length = unit(0.5, "cm")),
                      size=5, 
-                     color= "green4") +
+                     color= "cornflowerblue") +
         geom_segment(aes(x=cover-0.5,xend=cover+0.5,y=id,yend=id), size=5, colour="black")+
+        geom_segment(aes(x=0,xend=cover,y=id,yend=id), size=1, linetype="dotted" ,colour="grey")+
         scale_y_continuous(breaks = as.integer(df$id), labels = df$acronym) +
         scale_x_continuous(breaks = seq(0,100, by=25), limits = c(0,100)) +
-        labs(x = paste0("Suitable area (%)"),
+        labs(x = paste0(yetiqueta),
              y = NULL) +
         facet_grid(area ~ System_label) +
         theme(axis.text.y = element_text(size = 10, angle = 0, hjust = 1, 
@@ -411,3 +418,4 @@ for (i in spnames) {
          width = 30,
          height = 15,
          units = "cm")
+  
