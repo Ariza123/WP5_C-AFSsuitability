@@ -299,7 +299,7 @@ for (i in spnames) {
 
   
   
-  # Calculate changes ####
+  # Calculate changes with mask####
   changes <- read.csv("processing/figures/wining_losing_sp_withmask.csv")
   changes <- changes[,-c(7:11)]
   names(changes) <- c("acronym","System","never","remain","no_longer","new")
@@ -323,10 +323,9 @@ for (i in spnames) {
   changes[changes$acronym=="Theobroma cacao","Uses"] <- "cocoa"
   changes$Uses <- as.factor(changes$Uses) 
   
-  # change use type to cocoa
-  
+  # save to later calcualte differences
+  changes_withmask <- changes
 
-  
   # add names and labels of focal species 
   # uses <- sort(unique(changes$main_use))
   
@@ -337,8 +336,7 @@ for (i in spnames) {
   # colores de los nombres de las especies
   miscolores <- c("black","darkmagenta", "darkgreen", "darkblue","chocolate4")
   yetiqueta <- "Suitable area not deforestation (%)"
-  # miscolores <- viridis(length(levels(changes$Uses)))
-  # miscolores <- "black"
+
   
   # Loop por emission scenario
   plots <- list()
@@ -347,7 +345,7 @@ for (i in spnames) {
     
     for(j in c(2:3)){
       
-      df <- subset(changes, grepl(scenario[s], changes$System))
+      df <- subset(changes_withmask, grepl(scenario[s], changes_withmask$System))
       df <- subset(df, grepl(RCP[j], df$System))
       df$area <- " "
       head(df)
@@ -383,7 +381,7 @@ for (i in spnames) {
               axis.text.x = element_text(size = 12, angle = 0, hjust = 0.5, 
                                          vjust = 1, face="plain", colour = "black"),
               axis.title = element_text(size = 12, face="bold"),
-              panel.border = element_rect(colour = "black", fill=NA, size=0.5),
+              # panel.border = element_rect(colour = "black", fill=NA, size=0.5),
               plot.background = element_blank(),
               panel.background = element_blank(),
               strip.text.x = element_text(size = 12, colour = "black"),
@@ -419,3 +417,145 @@ for (i in spnames) {
          height = 15,
          units = "cm")
   
+  
+  
+  # Calculate changes without mask####
+  changes <- read.csv("processing/figures/wining_losing_sp.csv")
+  changes <- changes[,-c(7:11)]
+  names(changes) <- c("acronym","System","never","remain","no_longer","new")
+  
+  changes %<>% 
+    mutate(area = rep("suitable", nrow(changes)),
+           area_raster = never + remain + no_longer + new, #number of cells (areas) the raster cover
+           cover = ((remain + no_longer) * 100) / area_raster, #proportion of current area
+           future_cover = ((remain + new) * 100) / area_raster, #proportion of future areas
+           change = future_cover  - cover) %>%  #change between current and future suitable areas
+    as_tibble()
+  
+  # make labels of systems (land use)
+  
+  changes$System_label <- as.factor(changes$System)
+  # levels(changes$System_label) <- RCP
+  
+  changes <- merge(changes,dic_species,by.x="acronym",by.y="Scientific.names",all.x=T)
+  changes[changes$acronym=="Theobroma cacao","Uses"] <- "cocoa"
+  changes$Uses <- as.factor(changes$Uses) 
+  
+  # Combine with changes with deforestation (mask)
+  changes_all <- merge(changes_withmask,changes,by=c("acronym","System"),suffixes =c(".mask",""))
+  changes_all$difference <- changes_all$cover.mask-changes_all$cover
+
+  
+  # add names and labels of focal species 
+  # uses <- sort(unique(changes$main_use))
+  
+  #..............................................
+  #..............................................
+  # Make charts ####
+  
+  # colores de los nombres de las especies
+  yetiqueta <- "Suitable area (%)"
+  areapixel <- 20.25
+
+  
+  # Loop por emission scenario
+  plots <- list()
+  it <- 1
+  for (s in seq_along(scenario)){
+    
+    for(j in c(2:3)){
+      
+      df <- subset(changes_all, grepl(scenario[s], changes_all$System))
+      df <- subset(df, grepl(RCP[j], df$System))
+      df$area <- " "
+      head(df)
+      
+      df %<>% arrange(. , change)
+      
+      df$id <- as.integer(factor(df$acronym, levels = unique(df$acronym)))
+      
+      lab <- ""
+      
+      p <- ggplot(data=df) +
+        
+        geom_segment(data=subset(df, df$change <= 0), 
+                     mapping = aes(x=cover, xend=future_cover,
+                                   y=id, yend=id),
+                     # arrow=arrow(length = unit(0.5, "cm")),
+                     size=3, 
+                     color= "#ca0020") +
+        geom_segment(data=subset(df, df$change > 0), 
+                     mapping = aes(x=cover, xend=future_cover,
+                                   y=id, yend=id),
+                     # arrow=arrow(length = unit(0.5, "cm")),
+                     size=3, 
+                     color= "cornflowerblue") +
+        geom_segment(aes(x=cover-0.5,xend=cover+0.5,y=id,yend=id), size=3, colour="black")+
+        
+        geom_segment(data=subset(df, df$change <= 0), 
+                     mapping = aes(x=cover.mask, xend=future_cover.mask,
+                                   y=id, yend=id),
+                     # arrow=arrow(length = unit(0.5, "cm")),
+                     size=3, 
+                     color= "#ca0020",alpha=0.6) +
+        geom_segment(data=subset(df, df$change > 0), 
+                     mapping = aes(x=cover.mask, xend=future_cover.mask,
+                                   y=id, yend=id),
+                     # arrow=arrow(length = unit(0.5, "cm")),
+                     size=3, 
+                     color= "cornflowerblue",alpha=0.6) +
+        geom_segment(aes(x=cover.mask-0.5,xend=cover.mask+0.5,y=id,yend=id), size=3, colour="grey")+
+        
+        geom_segment(aes(x=0,xend=cover,y=id,yend=id), size=1, linetype="dotted" ,colour="grey")+
+        # annotate("text",label=round(df$difference,0),x=rep(100,nrow(df)),y=df$id,hjust = 1,    vjust = 0.5)+
+        scale_y_continuous(breaks = as.integer(df$id), labels = df$acronym) +
+        scale_x_continuous(breaks = seq(0,100, by=25), limits = c(0,100)) +
+        labs(x = paste0(yetiqueta),  y = NULL) +
+        facet_grid(area ~ System_label) +
+        theme(axis.text.y = element_text(size = 10, angle = 0, hjust = 1, 
+                                         vjust = 0.5, face="italic", colour = miscolores[df$Uses]),
+              axis.text.x = element_text(size = 12, angle = 0, hjust = 0.5, 
+                                         vjust = 1, face="plain", colour = "black"),
+              axis.title = element_text(size = 12, face="bold"),
+              # panel.border = element_rect(colour = "black", fill=NA, size=0.5),
+              plot.background = element_blank(),
+              panel.background = element_blank(),
+              strip.text.x = element_text(size = 12, colour = "black"),
+              strip.text.y = element_text(size=12, colour = "black"),
+              strip.background = element_rect(colour="black", fill="#FFFFFF")) 
+      
+      
+      plots[[it]] <- p
+      it <- it+1
+      
+    }
+  }
+  
+  p20 <- grid.arrange(
+    plots[[1]],
+    plots[[2]],
+    nrow = 1)
+  
+  p40 <- grid.arrange(
+    plots[[3]],
+    plots[[4]],
+    nrow = 1)
+  
+  ggsave(paste0("processing/figures/changessuitability_ord_change21-40.png"),
+         plot = p20,
+         width = 30,
+         height = 15,
+         units = "cm")
+  
+  ggsave(paste0("processing/figures/changessuitability_ord_change41-60.png"),
+         plot = p40,
+         width = 30,
+         height = 15,
+         units = "cm")
+  
+  
+  #####
+  
+
+  differences <- unique(changes_all[,c("acronym","difference")])
+         
